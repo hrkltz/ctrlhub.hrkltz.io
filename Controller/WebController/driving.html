@@ -26,9 +26,33 @@
             color: white;
         }
         main {
-            flex: 1;
+            flex: 1 1 auto;
             display: flex;
             flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        x-wheel {
+            flex: 0 0 auto;
+            width: 300px;
+            height: 300px;
+        }
+        div {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: black;
+            color: white;
         }
     </style>
 <head>
@@ -37,11 +61,61 @@
         <input type="text" placeholder="192.168..." id="ipInput" />
     </header>
     <main>
-        <span>Steering Wheel</span>
-        <span>Brake & Throttle</span>     
+        <x-wheel id="steering-wheel" default="0" min="-90" max="90" step="5" return-to-default></x-wheel>
+        <div>
+            <button id="accelerate-button">Accelerate</button>
+            <button id="brake-button">Brake</button>
+        </div>
     </main>
+    <script src="x-wheel.js" type="module"></script>
     <script>
-        const ipInputElement = document.getElementById('ipInput');
+        // Helper function to send POST requests.
+        function post(ip, path, body) {
+            return fetch(`http://${ip}/${path}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+        }
+
+        // Get references to the DOM elements.
+        const ipInput = document.getElementById('ipInput');
+        const steeringWheelElement = document.getElementById('steering-wheel');
+        const accelerateButton = document.getElementById('accelerate-button');
+        const brakeButton = document.getElementById('brake-button');
+
+        // Set up event listeners.
+        steeringWheelElement.addEventListener('rotate', (event) => {
+            const ip = ipInput.value;
+            const angle = event.detail.angle;
+            if (ip) {
+                post(ip, 'gamepad', { leftX: angle, });
+            }
+        });
+        accelerateButton.addEventListener('pointerdown', () => {
+            const ip = ipInput.value;
+            if (ip) {
+                post(ip, 'keyboard', { "keys": [26,0,0,0,0,0], }) // 'W' key
+            }
+        });
+        accelerateButton.addEventListener('pointerup', () => {
+            const ip = ipInput.value;
+            if (ip) {
+                post(ip, 'keyboard', { "keys": [0,0,0,0,0,0], }) // release all keys
+            }
+        });
+        brakeButton.addEventListener('pointerdown', () => {
+            const ip = ipInput.value;
+            if (ip) {
+                post(ip, 'keyboard', { "keys": [22,0,0,0,0,0], }) // 'S' key
+            }
+        });
+        brakeButton.addEventListener('pointerup', () => {
+            const ip = ipInput.value;
+            if (ip) {
+                post(ip, 'keyboard', { "keys": [0,0,0,0,0,0], }) // release all keys    
+            }
+        });
     </script>
 </body>
 </html>
