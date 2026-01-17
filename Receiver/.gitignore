@@ -1,0 +1,12 @@
+# Python & Venv specific ignores
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.Python
+.ruff_cache/
+.venv/
+ENV/
+venv/
+*.py[cod]
+*.pyd
+*.so
