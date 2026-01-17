@@ -1,8 +1,30 @@
-#include "HTTPServerUtil.hpp"
+/**
+ * @file HTTPServerUtil.cpp
+ * @author Oliver Herklotz (oliver-hrkltz)
+ * @date 17.01.2026
+ */
 #include "HIDUtil.hpp"
+#include "HTTPServerUtil.hpp"
+#include <Arduino.h>
 #include <ArduinoJson.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 static AsyncWebServer server(80);
+
+// Helper to add CORS headers to every response
+void addCORS(AsyncWebServerResponse* response) {
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    response->addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+// CORS preflight handler for all endpoints
+auto corsOptionsHandler = [](AsyncWebServerRequest* request) {
+    AsyncWebServerResponse* response = request->beginResponse(204);
+    addCORS(response);
+    request->send(response);
+};
 
 void HTTPServerUtil::Init() {
     // Root endpoint.
@@ -29,8 +51,11 @@ void HTTPServerUtil::Init() {
         int buttons = doc["buttons"] | 0;
         HIDUtil::mouse.move(dx, dy, wheel, buttons);
       }
-      request->send(200, "text/plain", "Mouse report received\n");
+      AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", "Mouse report received\n");
+      addCORS(response);
+      request->send(response);
     });
+    server.on("/mouse", HTTP_OPTIONS, corsOptionsHandler);
     
     // Handle keyboard report.
     // Expects JSON body like:
@@ -51,36 +76,55 @@ void HTTPServerUtil::Init() {
         HIDUtil::keyboard.sendReport(&report);
         HIDUtil::keyboard.releaseAll();
       }
-      request->send(200, "text/plain", "Keyboard report received\n");
+      AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", "Keyboard report received\n");
+      addCORS(response);
+      request->send(response);
     });
+    server.on("/keyboard", HTTP_OPTIONS, corsOptionsHandler);
 
     // Handle gamepad report.
     // Expects JSON body like:
     // {
-    //   "buttons": 1,
-    //   "leftX": 0,
-    //   "leftY": 0,
-    //   "rightX": 0,
-    //   "rightY": 0,
-    //   "leftTrigger": 0,
-    //   "rightTrigger": 0,
-    //   "hat": 0
+    //   "x": 0,
+    //   "y": 0,
+    //   "z": 0,
+    //   "rz": 0,
+    //   "rx": 0,
+    //   "ry": 0,
+    //   "hat": 0,
+    //   "buttons": 0
     // }
     server.on("/gamepad", HTTP_POST, [](AsyncWebServerRequest *request, JsonVariant &json){ 
       if (json.is<JsonObject>()) {
+        // Parse JSON body into C++ variables.
         JsonObject doc = json.as<JsonObject>();
-        uint32_t buttons = doc["buttons"] | 0;
-        int8_t leftX = doc["leftX"] | 0;
-        int8_t leftY = doc["leftY"] | 0;
-        int8_t rightX = doc["rightX"] | 0;
-        int8_t rightY = doc["rightY"] | 0;
-        int8_t leftTrigger = doc["leftTrigger"] | 0;
-        int8_t rightTrigger = doc["rightTrigger"] | 0;
-        uint8_t hat = doc["hat"] | 0;
-        HIDUtil::gamepad.send(leftX, leftY, rightX, rightY, leftTrigger, rightTrigger, hat, buttons);
+        int x = doc["x"].as<int>();
+        int y = doc["y"].as<int>();
+        int z = doc["z"].as<int>();
+        int rz = doc["rz"].as<int>();
+        int rx = doc["rx"].as<int>();
+        int ry = doc["ry"].as<int>();
+        uint8_t hat = doc["hat"].as<uint8_t>();
+        uint32_t buttons = doc["buttons"].as<uint32_t>();
+
+        // Send gamepad report.
+        //bool send(int8_t x, int8_t y, int8_t z, int8_t rz, int8_t rx, int8_t ry, uint8_t hat, uint32_t buttons);
+        HIDUtil::SendGamepad(
+          static_cast<int8_t>(x),
+          static_cast<int8_t>(y),
+          static_cast<int8_t>(z),
+          static_cast<int8_t>(rz),
+          static_cast<int8_t>(rx),
+          static_cast<int8_t>(ry),
+          hat,
+          buttons
+        );
       }
-      request->send(200, "text/plain", "Gamepad report received\n");
+      AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", "Gamepad report received\n");
+      addCORS(response);
+      request->send(response);
     });
+    server.on("/gamepad", HTTP_OPTIONS, corsOptionsHandler);
     
     //TODO: // Handle pen report
     //TODO: server.on("/pen", HTTP_POST, [](AsyncWebServerRequest *request, JsonVariant &json){

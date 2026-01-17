@@ -1,3 +1,8 @@
+/**
+ * @file DisplayUtil.hpp
+ * @author Oliver Herklotz (oliver-hrkltz)
+ * @date 17.01.2026
+ */
 #pragma once
 
 #include <U8x8lib.h>

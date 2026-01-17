@@ -1,3 +1,8 @@
+/**
+ * @file DisplayUtil.cpp
+ * @author Oliver Herklotz (oliver-hrkltz)
+ * @date 17.01.2026
+ */
 #include "DisplayUtil.hpp"
 
 U8X8_SSD1306_128X64_NONAME_HW_I2C DisplayUtil::_mU8x8(U8X8_PIN_NONE);
