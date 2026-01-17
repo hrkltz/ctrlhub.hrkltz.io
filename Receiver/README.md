@@ -14,9 +14,8 @@ Please run the following commands to prepare the virtual environment with all de
 
 ```zsh
 user@device Receiver % python3 -m venv ".venv/"
-user@device Receiver % source ".venv/bin/activate"
-user@device Receiver % python3 -m pip install --upgrade pip
-user@device Receiver % python3 -m pip install -r "requirements.txt"
+user@device Receiver % (source ".venv/bin/activate" && python3 -m pip install --upgrade pip)
+user@device Receiver % (source ".venv/bin/activate" && python3 -m pip install -r "requirements.txt")
 ```
 
 ## Usage
