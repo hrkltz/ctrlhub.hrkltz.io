@@ -55,7 +55,13 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$dry" = false ]; then
-    arduino-cli --config-file arduino-cli.yaml upload -p /dev/cu.usbmodem2101 -b esp32:esp32:XIAO_ESP32S3 .
+
+    SCRIPT_MCU_DEV_PORT=$(ls /dev/cu.usbmodem* 2>/dev/null | head -n 1)
+    if [ -z "$SCRIPT_MCU_DEV_PORT" ]; then
+        echo "Error: No /dev/cu.usbmodem* device found."
+        exit 1
+    fi
+    arduino-cli --config-file arduino-cli.yaml upload -p "$SCRIPT_MCU_DEV_PORT" -b esp32:esp32:XIAO_ESP32S3 .
     if [ $? -ne 0 ]; then
         echo "Error: Upload failed."
         exit 1
