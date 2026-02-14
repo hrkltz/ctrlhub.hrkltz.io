@@ -29,6 +29,15 @@ XIAO_ESP32S3_PLUS esp32:esp32:XIAO_ESP32S3_Plus
 arduino-cli --config-file arduino-cli.yaml lib install "Async TCP@3.4.10" "ArduinoJson@7.4.2" "ESP Async WebServer@3.9.4"
 ## Display
 arduino-cli --config-file arduino-cli.yaml lib install U8g2@2.35.30
+## M5Stack Joystic2 (U024-V2)
+arduino-cli --config-file arduino-cli.yaml lib install --git-url "https://github.com/m5stack/M5Unit-Joystick2.git"
+
+### M5Stack M5Unit Hub (U040-B-V21)
+# Note: It's simply a PCA9548AP, so any default lib should do it too.
+arduino-cli --config-file arduino-cli.yaml lib install --git-url "https://github.com/RobTillaart/TCA9548#0.3.1"
+
+#arduino-cli --config-file arduino-cli.yaml lib install --git-url "https://github.com/m5stack/M5UnitUnified"
+#arduino-cli --config-file arduino-cli.yaml lib install --git-url "https://github.com/m5stack/M5Unit-HUB"
 ```
 
 >Note: You need to set your WiFi SSID and password! You can either do this directly in the source code or use an environment variable. Stick to the second option if you plan to share your code to avoid leaking your network secrects.
